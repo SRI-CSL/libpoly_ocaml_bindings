@@ -50,6 +50,7 @@ module AlgebraicNumber : sig
   val sgn_at_a : t ptr -> bool
   val sgn_at_b : t ptr -> bool
   val interval : t ptr -> DyadicInterval.t ptr
+  val f        : t ptr -> UPolynomial.t ptr
   val to_string : t ptr -> string
   val construct_zero : t ptr -> unit
 end

@@ -197,6 +197,7 @@ module AlgebraicNumber = struct
   let sgn_at_a t = Ctypes.(getf !@t lp_algebraic_number_struct#members#sgn_at_a |> is1_int)
   let sgn_at_b t = Ctypes.(getf !@t lp_algebraic_number_struct#members#sgn_at_b |> is1_int)
   let interval t = Ctypes.(getf !@t lp_algebraic_number_struct#members#_I |> addr)
+  let f t = Ctypes.(getf !@t lp_algebraic_number_struct#members#f)
 
   let to_string0 =
     Foreign.foreign "lp_algebraic_number_to_string"
