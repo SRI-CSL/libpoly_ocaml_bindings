@@ -1,0 +1,30 @@
+opam-version: "2.0"
+name: "libpoly_bindings"
+version: "0.2"
+synopsis: "Ocaml bindings for libpoly"
+description: "Ocaml bindings for libpoly"
+maintainer: "Stephane Graham-Lengrand <stephane.graham-lengrand@csl.sri.com>"
+authors: "Stephane Graham-Lengrand <stephane.graham-lengrand@csl.sri.com>"
+license: "GPLv3"
+homepage: "https://github.com/SRI-CSL/libpoly_ocaml_bindings"
+bug-reports: "https://github.com/SRI-CSL/libpoly_ocaml_bindings/issues"
+depends: [
+  "ocaml" {>= "4.08"}
+  "dune" {build}
+  "ocamlfind" {build}
+  "containers"  {>= "3.0.0"}
+  "ppx_deriving"
+  "ppx_optcomp"
+  "sexplib"
+  "sexplib0"
+  "ctypes"
+  "ctypes-foreign"
+  "ctypes-zarith"
+#  "ctypes-of-clang"
+]
+build: [
+  make
+]
+install: [
+  make "install"
+]
