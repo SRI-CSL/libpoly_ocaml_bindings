@@ -6,7 +6,7 @@
 (library
  (name libpoly)
  (public_name libpoly_bindings)
- (c_names libpoly_ext_stubs)
+ (foreign_stubs (language c) (names libpoly_ext_stubs))
  (libraries ctypes ctypes.foreign ctypes-zarith sexplib containers ppx_cstubs)
  (flags (:standard -cclib -lpoly.0 -ccopt "$LDFLAGS"))
  (preprocess (pps ppx_deriving.std ppx_optcomp))

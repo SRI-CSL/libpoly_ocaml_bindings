@@ -1,2 +1,2 @@
-(lang dune 1.2)
-(name yices2_bindings)
+(lang dune 2.7)
+(name libpoly_bindings)
