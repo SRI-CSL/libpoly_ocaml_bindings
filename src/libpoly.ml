@@ -213,4 +213,11 @@ module AlgebraicNumber = struct
          (Ctypes.ptr t)
          (Ctypes.returning Ctypes.void))
 
+  let destruct =
+    Foreign.foreign "lp_algebraic_number_destruct"
+      (Ctypes.(@->)
+         (Ctypes.ptr t)
+         (Ctypes.returning Ctypes.void))
+
+  let make () = Ctypes.(make ~finalise:(fun p -> p |> addr |> destruct) t |> addr)
 end

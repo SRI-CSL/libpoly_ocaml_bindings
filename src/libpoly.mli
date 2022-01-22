@@ -53,4 +53,5 @@ module AlgebraicNumber : sig
   val f        : t ptr -> UPolynomial.t ptr
   val to_string : t ptr -> string
   val construct_zero : t ptr -> unit
+  val make : unit -> t ptr
 end

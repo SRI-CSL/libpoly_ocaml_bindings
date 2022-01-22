@@ -1,7 +1,7 @@
 open Containers
 open Libpoly
 
-let v  = Ctypes.make AlgebraicNumber.t |> Ctypes.addr
+let v  = AlgebraicNumber.make()
 let () = AlgebraicNumber.construct_zero v
 let () = print_endline(AlgebraicNumber.to_string v)
 
@@ -9,7 +9,7 @@ let p = UPolynomial.construct_power Ring.lp_Z 10 (Signed.Long.of_int 0)
 let () = print_endline(UPolynomial.to_string p)
 
 (* The following fails *)
-(* let () = UPolynomial.delete p            *)
+(* let () = UPolynomial.delete p *)
 (* let p = UPolynomial.construct_power Ring.lp_Z 10 (Signed.Long.of_int 1)
  * let () = print_endline(UPolynomial.to_string p) *)
 
