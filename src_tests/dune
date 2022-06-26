@@ -1,7 +1,6 @@
 (test
  (name test)
  (libraries ctypes ctypes.foreign sexplib containers libpoly)
- (flags (:standard -cclib -lpoly.0 -ccopt "$LDFLAGS"))
  (preprocess (pps ppx_deriving.std))
 )
 
