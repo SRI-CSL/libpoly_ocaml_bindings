@@ -8,15 +8,15 @@
  (public_name libpoly_bindings)
  (foreign_stubs (language c) (names libpoly_structs_stubs))
  (libraries ctypes ctypes.foreign ctypes-zarith sexplib containers ppx_cstubs)
- (flags (:standard
-        -cclib -Wl,-force_load
-        -cclib %{env:LIBRARY_PATH=/usr/local/lib/}/libpoly.a)) ; MAC
  ; (flags (:standard
- ;         -cclib -Wl,--verbose
- ;         -cclib -Wl,-Bstatic
- ;         -ccopt -L/usr/local/lib
- ;         -cclib -Wl,-force_load
- ;         -cclib -l:poly)) ; Linux
+ ;        -cclib -Wl,-force_load
+ ;        -cclib %{env:LIBRARY_PATH=/usr/local/lib/}/libpoly.a)) ; MAC
+ (flags (:standard
+         -cclib -Wl,--verbose
+         -cclib -Wl,-Bstatic
+         -ccopt -L/usr/local/lib
+         -cclib -Wl,-force_load
+         -cclib -l:poly)) ; Linux
  (preprocess (pps ppx_deriving.std ppx_optcomp))
  (synopsis "libpoly bindings")
 )
