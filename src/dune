@@ -1,16 +1,31 @@
-(rule
-  (targets libpoly_structs.ml libpoly_structs_stubs.c)
-  (deps libpoly_structs.c.ml)
-  (action (run %{bin:ppx_cstubs} %{deps} -o %{targets})))
-
 (library
  (name libpoly)
  (public_name libpoly_bindings)
- (foreign_stubs (language c) (names libpoly_structs_stubs))
- (libraries ctypes ctypes.foreign ctypes-zarith sexplib containers ppx_cstubs)
+ (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs structs)
  (flags (:standard -cclib -lpoly.0 -ccopt "$LDFLAGS"))
- (preprocess (pps ppx_deriving.std ppx_optcomp))
+ (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings")
+ (ctypes
+    (external_library_name ctypes_bindings)
+    (build_flags_resolver (vendored (c_flags ) (c_library_flags )))
+    (headers (preamble "
+    #include <ctypes_cstubs_internals.h>
+    #include <poly/dyadic_rational.h>
+    #include <poly/dyadic_interval.h>
+    #include <poly/algebraic_number.h>
+    #include <poly/integer.h>
+    #include <poly/upolynomial.h>
+    "))
+    (type_description
+      (instance Type)
+      (functor Ctypes_type_description))
+    (function_description
+      (instance Function)
+      (functor Ctypes_function_description)
+      )
+    (generated_types Types_generated)
+    (generated_entry_point Ctypes_bindings)
+    )
 )
 
 (env (dev (flags (:standard -warn-error -A))))

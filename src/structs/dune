@@ -1,0 +1,16 @@
+(rule
+  (targets libpoly_structs.ml libpoly_structs_stubs.c)
+  (deps libpoly_structs.c.ml)
+  (action (run %{bin:ppx_cstubs} %{deps} -o %{targets})))
+
+(library
+ (name structs)
+ (package libpoly_bindings)
+ (foreign_stubs (language c) (names libpoly_structs_stubs))
+ (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs)
+ (flags (:standard -cclib -lpoly.0 -ccopt "$LDFLAGS"))
+ (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
+ (synopsis "libpoly bindings structs")
+)
+
+(env (dev (flags (:standard -warn-error -A))))

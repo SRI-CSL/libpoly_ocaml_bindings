@@ -1,4 +1,4 @@
-open Containers
+open! Containers
 open Libpoly
 
 let v  = AlgebraicNumber.make()
