@@ -8,14 +8,11 @@
  (ctypes
     (external_library_name ctypes_bindings)
     (build_flags_resolver (vendored (c_flags ) (c_library_flags )))
-    (headers (preamble "
-    #include <ctypes_cstubs_internals.h>
-    #include <poly/dyadic_rational.h>
-    #include <poly/dyadic_interval.h>
-    #include <poly/algebraic_number.h>
-    #include <poly/integer.h>
-    #include <poly/upolynomial.h>
-    "))
+    (headers (include "poly/dyadic_rational.h"
+                      "poly/dyadic_interval.h"
+                      "poly/algebraic_number.h"
+                      "poly/integer.h"
+                      "poly/upolynomial.h"))
     (type_description
       (instance Type)
       (functor Ctypes_type_description))
