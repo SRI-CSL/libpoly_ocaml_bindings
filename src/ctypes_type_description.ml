@@ -29,7 +29,7 @@ module Ring = struct
 
   type t = [ `lp_int_ring_t ] structure
 
-  let s : t typ = lift_typ(Ctypes.structure "")
+  let s : t typ = structure ""
 
   let lp_int_ring_struct =
     let field_0 = field s "ref_count" size_t in
@@ -57,17 +57,11 @@ end
 module Types (F : TYPE) = struct
   open F
 
-  open Unsigned
-
-
-
   module DyadicInterval = struct
     include DyadicInterval
     type s = t
     type t = s abstract
   end
-
-
 
 
   module UPolynomial = struct

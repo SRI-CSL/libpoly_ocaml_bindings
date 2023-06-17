@@ -20,8 +20,6 @@ end
 module DyadicInterval = struct
 
   include Types_generated.DyadicInterval
-  type s = t
-  type t = s abstract
 
   let a_open x = x |> a_open |> Size_t.(equal one)
   let b_open x = x |> b_open |> Size_t.(equal one)

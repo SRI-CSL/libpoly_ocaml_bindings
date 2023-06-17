@@ -3,9 +3,6 @@ open Ctypes_zarith
 
 module Functions (F : FOREIGN) = struct
   open F
-  open Structs.Libpoly_structs
-  open Unsigned
-  open Types_generated
 
   module DyadicRational = struct
 
