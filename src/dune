@@ -2,7 +2,7 @@
  (name libpoly)
  (public_name libpoly_bindings)
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs structs)
- (flags (:standard -cclib -lpoly.0 -ccopt "$LDFLAGS"))
+ (flags (:standard -cclib -lpoly -ccopt "$LDFLAGS"))
  (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings")
  (ctypes
