@@ -7,7 +7,7 @@
  (synopsis "libpoly bindings")
  (ctypes
     (external_library_name ctypes_bindings)
-    (build_flags_resolver (vendored (c_flags "-w") (c_library_flags )))
+    (build_flags_resolver (vendored (c_flags ("-w" "-fPIC")) (c_library_flags ("-w" "-fPIC"))))
     (headers (include "poly/dyadic_rational.h"
                       "poly/dyadic_interval.h"
                       "poly/algebraic_number.h"
