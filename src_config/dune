@@ -1,0 +1,26 @@
+; Building executable to build the link flags
+(executable
+ (name set_flags)
+ (libraries containers)
+)
+
+; Building the link flags
+(rule
+ (target link_flags)
+ (deps set_flags.exe)
+ (action
+  (with-stdout-to link_flags
+   (run ./set_flags.exe %{system})))
+)
+
+; Installing the link flags for application using this library
+; The executable stanza in its dune file should contain
+;  (link_flags (:include /%{lib:libpoly:link_flags}))
+
+; (install
+;  (files link_flags)
+;  (section lib)
+;  (package libpoly))
+ 
+
+(env (dev (flags (:standard -warn-error -A))))
