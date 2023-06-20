@@ -1,7 +1,6 @@
 (test
  (name test)
  (libraries ctypes sexplib containers libpoly)
- (flags (:include ../src_config/link_flags))
  (preprocess (pps ppx_deriving.std))
 )
 

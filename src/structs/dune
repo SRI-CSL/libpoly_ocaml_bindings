@@ -1,14 +1,19 @@
 (rule
+ (targets c_flags.sexp c_library_flags.sexp c_flags.lines)
+ (deps (:discover ../../src_config/discover.exe))
+ (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
+
+(rule
   (targets libpoly_structs.ml libpoly_structs_stubs.c)
-  (deps libpoly_structs.c.ml)
-  (action (run %{bin:ppx_cstubs} %{deps} -o %{targets})))
+  (deps (:first-dep libpoly_structs.c.ml) c_flags.lines)
+  (action
+    (run %{bin:ppx_cstubs} %{first-dep} -o %{targets} -- %{read-lines:c_flags.lines})))
 
 (library
  (name structs)
  (package libpoly_bindings)
- (foreign_stubs (language c) (names libpoly_structs_stubs))
+ (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs)
- (flags (:include ../../src_config/link_flags))
  (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings structs")
 )
