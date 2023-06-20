@@ -24,12 +24,12 @@ let () =
     let base =
       if is_system "freebsd" sys || is_system "openbsd" sys then
         { libs   = [ "-L/usr/local/lib";    ];
-          cflags = [ "-I/usr/local/include" ] }
+          cflags = [ "-I/usr/local/include"; "-fPIC" ] }
       else if is_system "macosx" sys then
         { libs   = [ "-L/opt/local/lib";     "-L/usr/local/lib";    ];
           cflags = [ "-I/opt/local/include"; "-I/usr/local/include" ] }
       else
-        { libs   = []; cflags = [] }
+        { libs   = []; cflags = ["-fPIC"] }
     in
     let aux sofar (linux_name, macos_name) =
       let package = 
