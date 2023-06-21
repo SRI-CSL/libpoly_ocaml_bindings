@@ -10,7 +10,7 @@
     (run %{bin:ppx_cstubs} %{first-dep} -o %{targets} -- %{read-lines:c_flags.lines})))
 
 (library
- (name structs)
+ (name libpoly_structs)
  (package libpoly_bindings)
  (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs)

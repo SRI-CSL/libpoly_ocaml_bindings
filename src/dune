@@ -6,7 +6,7 @@
 (library
  (name libpoly_bindings)
  (public_name libpoly_bindings)
- (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs structs)
+ (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs libpoly_structs)
  (wrapped false)
  (private_modules
    Ctypes_bindings
@@ -17,11 +17,11 @@
    Ctypes_function_description
    Ctypes_type_description
    Types_generated)
- (flags )
+ (flags (:standard -w -27))
  (synopsis "libpoly bindings")
  (ctypes
     (external_library_name ctypes_bindings)
-    (build_flags_resolver (vendored (c_flags (:include c_flags.sexp)) (c_library_flags (%{env:LDFLAGS=} (:include c_library_flags.sexp)))))
+    (build_flags_resolver (vendored (c_flags (:include c_flags.sexp)) (c_library_flags (%{env:LDFLAGS=} "-w" (:include c_library_flags.sexp)))))
     (headers (include "poly/dyadic_rational.h"
                       "poly/dyadic_interval.h"
                       "poly/algebraic_number.h"

@@ -1,7 +1,7 @@
 open Ctypes
 open Ctypes_zarith
 
-open Structs.Libpoly_structs
+open Libpoly_structs
 
 
 module DyadicRational = struct
