@@ -7,6 +7,16 @@
  (name libpoly_bindings)
  (public_name libpoly_bindings)
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs structs)
+ (wrapped false)
+ (private_modules
+   Ctypes_bindings
+   Ctypes_bindings__c_generated_functions__Ctypes_function_description__Function
+   Ctypes_bindings__c_generated_types
+   Ctypes_bindings__function_gen__Ctypes_function_description__Function
+   Ctypes_bindings__type_gen
+   Ctypes_function_description
+   Ctypes_type_description
+   Types_generated)
  (flags )
  (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings")
