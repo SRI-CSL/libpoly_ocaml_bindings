@@ -15,11 +15,12 @@ In the directory of this `README.md`, build and install (in findlib) with the fo
 ```
 opam install .
 ```
-This expects the libpoly library to be present in the relevant paths (like `/usr/local/lib`). If for some reason these libraries are not in the usual paths, you can specify their paths by setting 
-the environment variables `LDFLAGS` (for the libpoly library), e.g.:
+This expects the libpoly library to be present in the relevant paths (e.g. `/usr/local/lib`), and likewise for its header files (e.g. `/usr/local/include`). If for some reason they are not in the usual paths, you can specify the paths by setting 
+the environment variables `LDFLAGS` and `C_INCLUDE_PATH`, e.g.:
 
 ```
 export LDFLAGS="-L[UNCONVENTIONAL_PATH]"
+export C_INCLUDE_PATH="[UNCONVENTIONAL_PATH]"
 ```
 
 #### Without opam
@@ -29,7 +30,6 @@ Besides libpoly, the bindings need some OCaml dependencies, that are listed in `
 ```
 opam install . --deps-only
 ```
-These dependencies are namely: `ocamlbuild`, `ctypes`, `ctypes-foreign`, `ppx_deriving`, `ppx_optcomp`, `sexplib`, `sexplib0`, and, for gmp support, `zarith`, and `ctypes-zarith`.
 
 To build, run the following command:
 ```
