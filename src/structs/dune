@@ -14,7 +14,7 @@
  (package libpoly_bindings)
  (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs)
- (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
+ (preprocess (pps ppx_cstubs.merlin))
  (synopsis "libpoly bindings structs")
 )
 

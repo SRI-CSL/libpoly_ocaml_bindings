@@ -13,8 +13,6 @@ depends: [
   "dune" {build}
   "ocamlfind" {build}
   "containers"  {>= "3.0.0"}
-  "ppx_deriving"
-  "ppx_optcomp"
   "sexplib"
   "sexplib0"
   "ctypes"

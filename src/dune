@@ -18,7 +18,6 @@
    Ctypes_type_description
    Types_generated)
  (flags )
- (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings")
  (ctypes
     (external_library_name ctypes_bindings)
