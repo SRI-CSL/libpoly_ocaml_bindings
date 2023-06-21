@@ -1,5 +1,5 @@
 open! Containers
-open Libpoly
+open Libpoly_bindings.Libpoly
 
 let v  = AlgebraicNumber.make()
 let () = AlgebraicNumber.construct_zero v

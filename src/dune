@@ -4,11 +4,10 @@
  (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
 
 (library
- (name libpoly)
+ (name libpoly_bindings)
  (public_name libpoly_bindings)
  (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs structs)
- (flags (-ccopt "$LDFLAGS"))
- (c_library_flags (:include c_library_flags.sexp))
+ (flags )
  (preprocess (pps ppx_deriving.std ppx_optcomp ppx_cstubs.merlin))
  (synopsis "libpoly bindings")
  (ctypes
