@@ -22,7 +22,7 @@
  (synopsis "libpoly bindings")
  (ctypes
     (external_library_name ctypes_bindings)
-    (build_flags_resolver (vendored (c_flags (:include c_flags.sexp)) (c_library_flags (:include c_library_flags.sexp))))
+    (build_flags_resolver (vendored (c_flags (:include c_flags.sexp)) (c_library_flags (%{env:LDFLAGS=} (:include c_library_flags.sexp)))))
     (headers (include "poly/dyadic_rational.h"
                       "poly/dyadic_interval.h"
                       "poly/algebraic_number.h"
