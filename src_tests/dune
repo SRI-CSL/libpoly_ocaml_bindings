@@ -1,7 +1,6 @@
 (test
  (name test)
- (libraries ctypes sexplib containers libpoly_bindings)
- (preprocess (pps ppx_deriving.std))
+ (libraries libpoly_bindings)
 )
 
 (env (dev (flags (:standard -warn-error -A))))

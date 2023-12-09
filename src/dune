@@ -6,7 +6,7 @@
 (library
  (name libpoly_bindings)
  (public_name libpoly_bindings)
- (libraries ctypes ctypes-zarith sexplib containers ppx_cstubs libpoly_structs)
+ (libraries ctypes ctypes-zarith libpoly_structs)
  (wrapped false)
  (private_modules
    Ctypes_bindings
