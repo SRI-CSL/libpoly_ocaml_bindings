@@ -3,18 +3,11 @@
  (deps (:discover ../../src_config/discover.exe))
  (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
 
-(rule
-  (targets libpoly_structs.ml libpoly_structs_stubs.c)
-  (deps (:first-dep libpoly_structs.c.ml) c_flags.lines)
-  (action
-    (run %{bin:ppx_cstubs} %{first-dep} -o %{targets} -- %{read-lines:c_flags.lines})))
-
 (library
  (name libpoly_structs)
  (package libpoly_bindings)
  (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
- (libraries ppx_cstubs)
- (preprocess (pps ppx_cstubs.merlin))
+ (libraries ctypes)
  (synopsis "libpoly bindings structs")
 )
 
