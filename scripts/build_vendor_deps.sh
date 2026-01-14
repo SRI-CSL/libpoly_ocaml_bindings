@@ -249,8 +249,9 @@ if [ "$platform" = "macos" ]; then
     ln -sf "libpoly.0.dylib" "$prefix/lib/libpoly.dylib"
   fi
 elif [ "$platform" = "linux" ]; then
-  if [ -f "$prefix/lib/libpoly.so.0" ] && [ ! -f "$prefix/lib/libpoly.so" ]; then
-    ln -sf "libpoly.so.0" "$prefix/lib/libpoly.so"
+  if compgen -G "$prefix/lib/libpoly.so."* > /dev/null && [ ! -f "$prefix/lib/libpoly.so" ]; then
+    so_target="$(ls -1 "$prefix/lib/libpoly.so."* | head -n 1)"
+    ln -sf "$(basename "$so_target")" "$prefix/lib/libpoly.so"
   fi
 fi
 
