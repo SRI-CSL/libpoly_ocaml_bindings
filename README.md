@@ -23,9 +23,21 @@ export LDFLAGS="-L[UNCONVENTIONAL_PATH]"
 export C_INCLUDE_PATH="[UNCONVENTIONAL_PATH]"
 ```
 
+### Vendored libpoly
+
+If `pkg-config` cannot find libpoly (package `poly.0` on macOS, `poly` on Linux), the build will compile libpoly from the vendored submodule under `vendor/libpoly` and install it into `_build/<context>/vendor_install` for the build.
+
+To force the vendored build even when a system libpoly is present:
+
+```
+make with-local-libpoly
+```
+
+When the vendored build runs, it installs libpoly into `_build/<context>/vendor_install`. `make install` will copy these artifacts into the current opam prefix, and `make uninstall` will remove them. The vendored build requires `cmake` and a C++ compiler.
+
 #### Without opam
 
-Besides libpoly, the bindings need some OCaml dependencies, that are listed in `libpoly_bindings.opam`. These are the findlib libraries that are / would be installed by opam, and that you can still install automatically with
+Besides libpoly, the bindings need some OCaml dependencies, that are listed in `libpoly.opam`. These are the findlib libraries that are / would be installed by opam, and that you can still install automatically with
 
 ```
 opam install . --deps-only

@@ -9,8 +9,12 @@ let is_system op s =
 
 let () =
   let out_path = ref "" in
+  let vendor_root = ref "" in
+  let vendor_prefix_arg = ref "" in
   let args =
-    [("-o", Arg.Set_string out_path, "output file")]
+    [("-o", Arg.Set_string out_path, "output file");
+      ("-vendor-root", Arg.Set_string vendor_root, "path to project root for vendored deps");
+      ("-vendor-prefix", Arg.Set_string vendor_prefix_arg, "prefix for vendored deps")]
   in
   C.main ~args ~name:"libpoly_struct_sizes" @@ fun c ->
     if !out_path = "" then
@@ -21,13 +25,40 @@ let () =
       | Some v -> v
       | None -> ""
     in
-    let fallback_cflags =
-      if is_system "freebsd" sys || is_system "openbsd" sys then
-        [ "-I/usr/local/include" ]
-      else if is_system "macosx" sys then
-        [ "-I/opt/homebrew/include"; "-I/opt/local/include"; "-I/usr/local/include" ]
+    let vendor_prefix =
+      let provided = !vendor_prefix_arg in
+      if provided <> "" then
+        Some provided
       else
-        [ "-I/usr/local/include"; "-I/usr/include" ]
+        let root = !vendor_root in
+        if root = "" then None else Some (Filename.concat root "vendor/_install")
+    in
+    let vendor_prefix =
+      match vendor_prefix with
+      | None -> None
+      | Some p ->
+          if Filename.is_relative p then
+            Some (Filename.concat (Sys.getcwd ()) p)
+          else
+            Some p
+    in
+    let fallback_cflags =
+      let base =
+        if is_system "freebsd" sys || is_system "openbsd" sys then
+          [ "-I/usr/local/include" ]
+        else if is_system "macosx" sys then
+          [ "-I/opt/homebrew/include"; "-I/opt/local/include"; "-I/usr/local/include" ]
+        else
+          [ "-I/usr/local/include"; "-I/usr/include" ]
+      in
+      match vendor_prefix with
+      | None -> base
+      | Some prefix ->
+          let incdir = Filename.concat prefix "include" in
+          if Sys.file_exists (Filename.concat incdir "poly/version.h") then
+            ("-I" ^ incdir) :: base
+          else
+            base
     in
     let cflags =
       match C.Pkg_config.get c with

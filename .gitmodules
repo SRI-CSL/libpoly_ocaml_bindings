@@ -1,0 +1,3 @@
+[submodule "vendor/libpoly"]
+	path = vendor/libpoly
+	url = https://github.com/SRI-CSL/libpoly

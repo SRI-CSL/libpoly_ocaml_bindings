@@ -1,6 +1,7 @@
 (test
  (name test)
- (libraries libpoly_bindings)
+ (libraries libpoly)
+ (link_flags (:include ../src/c_library_flags.ocaml))
 )
 
 (env (dev (flags (:standard -warn-error -A))))

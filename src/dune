@@ -1,15 +1,21 @@
 (rule
- (targets c_flags.sexp c_library_flags.sexp c_flags.lines)
- (deps (:discover ../src_config/discover.exe))
- (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
+ (targets c_flags.sexp c_library_flags.sexp c_flags.lines c_library_flags.ocaml)
+ (deps (alias ../vendor_deps)
+       (:discover ../src_config/discover.exe))
+ (action (run %{discover} -system %{ocaml-config:system}
+               -vendor-root %{workspace_root}
+               -vendor-prefix ../vendor_install
+               -pkg gmp gmp
+               -pkg poly poly.0)))
 
 (library
- (name libpoly_bindings)
- (public_name libpoly_bindings)
- (libraries ctypes ctypes-zarith libpoly_structs)
- (wrapped false)
- (private_modules
-   Ctypes_bindings
+ (name libpoly_ocaml)
+ (public_name libpoly)
+(libraries ctypes ctypes-zarith libpoly_structs)
+(wrapped false)
+(c_library_flags (:include c_library_flags.sexp))
+(private_modules
+  Ctypes_bindings
    Ctypes_bindings__c_generated_functions__Ctypes_function_description__Function
    Ctypes_bindings__c_generated_types
    Ctypes_bindings__function_gen__Ctypes_function_description__Function

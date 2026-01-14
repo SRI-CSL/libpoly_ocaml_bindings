@@ -1,16 +1,24 @@
 (rule
- (targets c_flags.sexp c_library_flags.sexp c_flags.lines)
- (deps (:discover ../../src_config/discover.exe))
- (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
+ (targets c_flags.sexp c_library_flags.sexp c_flags.lines c_library_flags.ocaml)
+ (deps (alias ../../vendor_deps)
+       (:discover ../../src_config/discover.exe))
+ (action (run %{discover} -system %{ocaml-config:system}
+               -vendor-root %{workspace_root}
+               -vendor-prefix ../../vendor_install
+               -pkg gmp gmp
+               -pkg poly poly.0)))
 
 (rule
  (targets libpoly_structs_sizes.ml)
- (deps (:sizes ../../src_config/struct_sizes.exe))
- (action (run %{sizes} -o %{targets})))
+ (deps (alias ../../vendor_deps)
+       (:sizes ../../src_config/struct_sizes.exe))
+ (action (run %{sizes} -o %{targets}
+               -vendor-root %{workspace_root}
+               -vendor-prefix ../../vendor_install)))
 
 (library
  (name libpoly_structs)
- (package libpoly_bindings)
+ (package libpoly)
  (modules libpoly_structs libpoly_structs_sizes)
  (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
  (libraries ctypes)
