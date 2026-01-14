@@ -1,4 +1,9 @@
 (executable
  (name discover)
  (libraries dune.configurator str))
+
+(executable
+ (name struct_sizes)
+ (libraries dune.configurator str))
+
 (env (dev (flags (:standard -warn-error -A))))

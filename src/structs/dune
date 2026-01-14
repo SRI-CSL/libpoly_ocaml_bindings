@@ -3,9 +3,15 @@
  (deps (:discover ../../src_config/discover.exe))
  (action (run %{discover} -system %{ocaml-config:system} -pkg gmp gmp -pkg poly poly.0)))
 
+(rule
+ (targets libpoly_structs_sizes.ml)
+ (deps (:sizes ../../src_config/struct_sizes.exe))
+ (action (run %{sizes} -o %{targets})))
+
 (library
  (name libpoly_structs)
  (package libpoly_bindings)
+ (modules libpoly_structs libpoly_structs_sizes)
  (foreign_stubs (language c) (names libpoly_structs_stubs) (flags (:include c_flags.sexp)))
  (libraries ctypes)
  (synopsis "libpoly bindings structs")

@@ -15,6 +15,41 @@ module Functions (F : FOREIGN) = struct
            (returning (ptr char)))
   end
 
+
+  module DyadicInterval = struct
+    module DI = Types_generated.DyadicInterval
+    module DR = Ctypes_type_description.DyadicRational
+
+    let a =
+      foreign "lpocaml_dyadic_interval_a"
+        ((@->)
+           (ptr DI.t)
+           (returning (ptr (lift_typ DR.t))))
+
+    let b =
+      foreign "lpocaml_dyadic_interval_b"
+        ((@->)
+           (ptr DI.t)
+           (returning (ptr (lift_typ DR.t))))
+
+    let a_open =
+      foreign "lpocaml_dyadic_interval_a_open"
+        ((@->)
+           (ptr DI.t)
+           (returning size_t))
+
+    let b_open =
+      foreign "lpocaml_dyadic_interval_b_open"
+        ((@->)
+           (ptr DI.t)
+           (returning size_t))
+
+    let is_point =
+      foreign "lpocaml_dyadic_interval_is_point"
+        ((@->)
+           (ptr DI.t)
+           (returning size_t))
+  end
   module Ring = struct
 
     open Ctypes_type_description.Ring
