@@ -149,6 +149,24 @@ let () =
               cflags = sofar.cflags @ deps.cflags }
     in
     let conf = List.fold_left aux base !pkg in
+    let conf =
+      let has_libpoly = List.exists ((=) "-lpoly") conf.libs in
+      let has_libdir libdir =
+        List.exists (fun flag -> flag = "-L" ^ libdir) conf.libs
+      in
+      let add_opam_libdir conf =
+        match opam_prefix with
+        | Some prefix ->
+            let libdir = Filename.concat prefix "lib" in
+            if has_libpoly && not (has_libdir libdir) then
+              (* Keep opam's libdir in the cmxa even if a vendored -L exists. *)
+              { conf with libs = ("-L" ^ libdir) :: conf.libs }
+            else
+              conf
+        | None -> conf
+      in
+      add_opam_libdir conf
+    in
 
     (* Emit the same flags in multiple formats for dune rules. *)
     C.Flags.write_sexp "c_flags.sexp" conf.cflags;
