@@ -1,5 +1,9 @@
+(* Generate C/LD flags for libpoly + dependencies and write them to files
+   consumed by dune. This tries pkg-config first, then falls back to
+   platform-specific defaults or a vendored prefix. *)
 module C = Configurator.V1
 
+(* Case-insensitive substring match to interpret OCaml "system" strings. *)
 let is_system op s =
   let re = Str.regexp_string_case_fold op in
   try
@@ -8,6 +12,7 @@ let is_system op s =
   with Not_found -> false
 
 let () =
+  (* Dune passes these arguments via the discover rule. *)
   let sys = ref "" in
   let pkg = ref [] in
   let first = ref "" in
@@ -21,10 +26,12 @@ let () =
       ("-pkg", Tuple[Set_string first; String(fun s -> pkg := (!first,s)::!pkg)], "package dependency")
     ])
   in
+  (* Run in configurator context so we can query ocamlc and pkg-config. *)
   C.main ~args ~name:"gmp" @@
     fun c ->
     let open C.Pkg_config in
     let sys = !sys in
+    (* Baseline flags are OS-specific and conservative. *)
     let base =
       if is_system "freebsd" sys || is_system "openbsd" sys then
         { libs   = [ "-L/usr/local/lib";    ];
@@ -35,6 +42,7 @@ let () =
       else
         { libs   = []; cflags = ["-fPIC"; "-w"] }
     in
+    (* Optional opam prefix to prioritize switch-local pkg-config files. *)
     let opam_prefix =
       match Sys.getenv_opt "OPAM_SWITCH_PREFIX" with
       | Some p when p <> "" -> Some p
@@ -51,6 +59,7 @@ let () =
           end
     in
     begin
+      (* Ensure pkg-config sees switch-local .pc files first. *)
       match opam_prefix with
       | None -> ()
       | Some p ->
@@ -62,6 +71,7 @@ let () =
           in
           Unix.putenv "PKG_CONFIG_PATH" new_value
     end;
+    (* Optional vendored prefix: explicit arg, opam prefix, or vendor/_install. *)
     let vendor_prefix =
       let provided = !vendor_prefix_arg in
       if provided <> "" then
@@ -73,6 +83,7 @@ let () =
             let root = !vendor_root in
             if root = "" then None else Some (Filename.concat root "vendor/_install")
     in
+    (* Resolve to absolute path if needed so the linker can use it directly. *)
     let vendor_prefix =
       match vendor_prefix with
       | None -> None
@@ -82,6 +93,7 @@ let () =
           else
             Some p
     in
+    (* If a vendored libpoly exists, inject it into the flag set. *)
     let vendor_poly_flags sofar =
       match vendor_prefix with
       | None -> None
@@ -103,6 +115,7 @@ let () =
               { libs = sofar.libs @ [ "-L" ^ libdir; "-lpoly" ];
                 cflags = sofar.cflags @ [ "-I" ^ incdir ] }
     in
+    (* Resolve each dependency, with pkg-config taking precedence. *)
     let aux sofar (linux_name, macos_name) =
       let package =
         if is_system "macosx" sys then macos_name else linux_name
@@ -113,6 +126,7 @@ let () =
       in
       match C.Pkg_config.get c with
       | None ->
+          (* No pkg-config available; use vendor or bare -l fallback. *)
           if linux_name = "poly" then
             match vendor_poly_flags sofar with
             | Some conf -> conf
@@ -122,6 +136,7 @@ let () =
       | Some pc ->
          match C.Pkg_config.query pc ~package with
          | None ->
+            (* pkg-config knows nothing about the package; fall back. *)
             if linux_name = "poly" then
               match vendor_poly_flags sofar with
               | Some conf -> conf
@@ -129,17 +144,20 @@ let () =
             else
               default ()
          | Some deps ->
+            (* Merge discovered flags into the running set. *)
             { libs   = sofar.libs @ deps.libs ;
               cflags = sofar.cflags @ deps.cflags }
     in
     let conf = List.fold_left aux base !pkg in
 
+    (* Emit the same flags in multiple formats for dune rules. *)
     C.Flags.write_sexp "c_flags.sexp" conf.cflags;
 
     C.Flags.write_sexp "c_library_flags.sexp" conf.libs;
 
     C.Flags.write_lines "c_flags.lines" conf.cflags;
 
+    (* OCaml -cclib expects each linker flag separately. *)
     let ocaml_lib_flags =
       List.concat_map (fun flag -> [ "-cclib"; flag ]) conf.libs
     in

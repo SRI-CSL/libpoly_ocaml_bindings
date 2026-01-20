@@ -1,5 +1,8 @@
+(* Probe C struct sizes/alignments and generate Ctypes stubs with
+   the correct ABI layout for libpoly's dyadic interval type. *)
 module C = Configurator.V1
 
+(* Case-insensitive substring match to interpret OCaml "system" strings. *)
 let is_system op s =
   let re = Str.regexp_string_case_fold op in
   try
@@ -8,6 +11,7 @@ let is_system op s =
   with Not_found -> false
 
 let () =
+  (* Dune passes an output path so we can emit generated OCaml code. *)
   let out_path = ref "" in
   let vendor_root = ref "" in
   let vendor_prefix_arg = ref "" in
@@ -20,11 +24,13 @@ let () =
     if !out_path = "" then
       C.die "Missing -o <output file>";
 
+    (* Use ocamlc's notion of the system to pick default include paths. *)
     let sys =
       match C.ocaml_config_var c "system" with
       | Some v -> v
       | None -> ""
     in
+    (* Optional vendored prefix for header discovery. *)
     let vendor_prefix =
       let provided = !vendor_prefix_arg in
       if provided <> "" then
@@ -33,6 +39,7 @@ let () =
         let root = !vendor_root in
         if root = "" then None else Some (Filename.concat root "vendor/_install")
     in
+    (* Resolve to absolute path for reliable include flags. *)
     let vendor_prefix =
       match vendor_prefix with
       | None -> None
@@ -42,6 +49,7 @@ let () =
           else
             Some p
     in
+    (* Conservative include paths in case pkg-config is unavailable. *)
     let fallback_cflags =
       let base =
         if is_system "freebsd" sys || is_system "openbsd" sys then
@@ -60,6 +68,7 @@ let () =
           else
             base
     in
+    (* Prefer pkg-config for libpoly headers when available. *)
     let cflags =
       match C.Pkg_config.get c with
       | None -> fallback_cflags
@@ -68,11 +77,13 @@ let () =
            | Some p -> p.C.Pkg_config.cflags
            | None -> fallback_cflags)
     in
+    (* Use the same C compiler as OCaml's toolchain. *)
     let cc =
       match C.ocaml_config_var c "c_compiler" with
       | Some v -> v
       | None -> C.ocaml_config_var_exn c "cc"
     in
+    (* Compile and run a tiny C program to extract sizeof/alignof. *)
     let c_file = Filename.temp_file "libpoly_sizes" ".c" in
     let exe_file = Filename.temp_file "libpoly_sizes" ".exe" in
     let oc = open_out c_file in
@@ -96,6 +107,7 @@ let () =
     if run.exit_code <> 0 then
       C.die "Failed to run size probe";
 
+    (* Expect two lines: size then alignment. *)
     let lines =
       run.stdout
       |> String.split_on_char '\n'
@@ -103,6 +115,7 @@ let () =
     in
     match lines with
     | [ size_str; align_str ] ->
+        (* Generate an abstract Ctypes type with the probed ABI details. *)
         let generated =
           Printf.sprintf
             "open Ctypes\n\ntype t\n\nlet dyadic_interval_t : t abstract typ =\n  abstract ~size:%s ~alignment:%s ~name:\"lp_dyadic_interval_t\"\n"
