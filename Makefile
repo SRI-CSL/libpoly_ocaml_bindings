@@ -16,7 +16,13 @@ test:
 	LD_LIBRARY_PATH="$(OPAM_SWITCH_PREFIX)/lib:$(PWD)/_build/default/vendor_install/lib$${LD_LIBRARY_PATH:+:$${LD_LIBRARY_PATH}}" \
 	dune build @runtest
 
-install: build
+install:
+	# Build vendored libpoly and copy it to the opam prefix first, so
+	# the OCaml archive picks up the opam libdir instead of build paths.
+	dune build @vendor_deps
+	./scripts/install_vendor_deps.sh --from-prefix _build/default/vendor_install
+	# Force a fresh configurator run with the opam libpoly now in place.
+	dune clean
 	dune build @install
 	dune install
 

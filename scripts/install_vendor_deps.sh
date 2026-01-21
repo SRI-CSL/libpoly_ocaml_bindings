@@ -113,7 +113,8 @@ chmod u+w "$marker"
 os_name="$(uname -s 2>/dev/null || echo unknown)"
 case "$os_name" in
   Darwin)
-    if [ -f "$prefix/lib/libpoly.0.dylib" ] && [ ! -f "$prefix/lib/libpoly.dylib" ]; then
+    if [ -f "$prefix/lib/libpoly.0.dylib" ]; then
+      # Always ensure the unversioned dylib points at the versioned file.
       ln -sf "libpoly.0.dylib" "$prefix/lib/libpoly.dylib"
     fi
     # Fix absolute install names from the vendored build and patch stubs.
@@ -121,23 +122,38 @@ case "$os_name" in
       fix_install_name() {
         # Update the library's install name, then patch any dependent stubs.
         local lib_path="$1"
-        local old_install_name new_install_name ocaml_libdir
+        local old_install_name new_install_name ocaml_libdir dep_basename
 
         [ -f "$lib_path" ] || return 0
         old_install_name="$(otool -D "$lib_path" 2>/dev/null | awk 'NR==2 {print $1}' || true)"
         new_install_name="$lib_path"
-        if [ -z "$old_install_name" ] || [ "$old_install_name" = "$new_install_name" ]; then
-          return 0
+        dep_basename="$(basename "$lib_path")"
+        if [ -n "$old_install_name" ] && [ "$old_install_name" != "$new_install_name" ]; then
+          install_name_tool -id "$new_install_name" "$lib_path"
         fi
 
-        install_name_tool -id "$new_install_name" "$lib_path"
+        patch_dep() {
+          local target="$1"
+          local dep
 
-        # If libpolyxx links against libpoly's old install name, fix it directly.
-        if [ "$lib_path" = "$prefix/lib/libpoly.0.dylib" ] && [ -f "$prefix/lib/libpolyxx.0.dylib" ]; then
-          if otool -L "$prefix/lib/libpolyxx.0.dylib" 2>/dev/null | grep -Fq "$old_install_name"; then
-            chmod u+w "$prefix/lib/libpolyxx.0.dylib" 2>/dev/null || true
-            install_name_tool -change "$old_install_name" "$new_install_name" "$prefix/lib/libpolyxx.0.dylib"
-          fi
+          [ -f "$target" ] || return 0
+          while IFS= read -r dep; do
+            if [ "$dep" = "$new_install_name" ]; then
+              continue
+            fi
+            case "$dep" in
+              "$old_install_name"|*/_build/*/vendor_install/*"$dep_basename")
+                chmod u+w "$target" 2>/dev/null || true
+                install_name_tool -change "$dep" "$new_install_name" "$target"
+                ;;
+            esac
+          done < <(otool -L "$target" 2>/dev/null | awk 'NR>1 {print $1}')
+        }
+
+        # If libpolyxx links against libpoly, fix it directly.
+        if [ "$lib_path" = "$prefix/lib/libpoly.0.dylib" ] || [ "$lib_path" = "$prefix/lib/libpoly.dylib" ]; then
+          patch_dep "$prefix/lib/libpolyxx.0.dylib"
+          patch_dep "$prefix/lib/libpolyxx.dylib"
         fi
 
         # Patch OCaml stubs in both opam prefix and the ocamlc libdir.
@@ -149,16 +165,15 @@ case "$os_name" in
         for dir in "${fixup_dirs[@]}"; do
           [ -d "$dir" ] || continue
           while IFS= read -r -d '' candidate; do
-            if otool -L "$candidate" 2>/dev/null | grep -Fq "$old_install_name"; then
-              chmod u+w "$candidate" 2>/dev/null || true
-              install_name_tool -change "$old_install_name" "$new_install_name" "$candidate"
-            fi
+            patch_dep "$candidate"
           done < <(find "$dir" -type f \( -name "*.so" -o -name "*.dylib" \) -print0)
         done
       }
 
       fix_install_name "$prefix/lib/libpoly.0.dylib"
+      fix_install_name "$prefix/lib/libpoly.dylib"
       fix_install_name "$prefix/lib/libpolyxx.0.dylib"
+      fix_install_name "$prefix/lib/libpolyxx.dylib"
     fi
     ;;
   Linux)

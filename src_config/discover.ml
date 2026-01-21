@@ -154,18 +154,93 @@ let () =
       let has_libdir libdir =
         List.exists (fun flag -> flag = "-L" ^ libdir) conf.libs
       in
-      let add_opam_libdir conf =
+      let libpoly_candidates =
+        [ "libpoly.dylib";
+          "libpoly.0.dylib";
+          "libpoly.so";
+          "libpoly.so.0";
+          "libpoly.so.0.0" ]
+      in
+      let libpoly_in_dir dir =
+        List.exists
+          (fun name -> Sys.file_exists (Filename.concat dir name))
+          libpoly_candidates
+      in
+      let libpoly_in_flags libs =
+        let add_path acc flag =
+          if String.length flag >= 2 && String.sub flag 0 2 = "-L" then
+            let path = String.sub flag 2 (String.length flag - 2) in
+            path :: acc
+          else
+            acc
+        in
+        let libdirs = List.rev (List.fold_left add_path [] libs) in
+        List.exists libpoly_in_dir libdirs
+      in
+      let has_substring haystack needle =
+        let re = Str.regexp_string needle in
+        try
+          ignore (Str.search_forward re haystack 0 : int);
+          true
+        with Not_found -> false
+      in
+      let opam_libdir =
         match opam_prefix with
-        | Some prefix ->
-            let libdir = Filename.concat prefix "lib" in
-            if has_libpoly && not (has_libdir libdir) then
-              (* Keep opam's libdir in the cmxa even if a vendored -L exists. *)
+        | Some prefix -> Some (Filename.concat prefix "lib")
+        | None -> None
+      in
+      let opam_has_libpoly =
+        match opam_libdir with
+        | Some dir -> libpoly_in_dir dir
+        | None -> false
+      in
+      let vendor_libdir =
+        match vendor_prefix with
+        | Some prefix -> Some (Filename.concat prefix "lib")
+        | None -> None
+      in
+      let vendor_has_libpoly =
+        match vendor_libdir with
+        | Some dir -> libpoly_in_dir dir
+        | None -> false
+      in
+      let strip_build_vendor_libdirs conf =
+        if not has_libpoly || not opam_has_libpoly then
+          conf
+        else
+          let is_build_vendor flag =
+            if String.length flag < 2 || String.sub flag 0 2 <> "-L" then
+              false
+            else
+              let path = String.sub flag 2 (String.length flag - 2) in
+              has_substring path "/_build/" && has_substring path "/vendor_install/"
+          in
+          { conf with libs = List.filter (fun flag -> not (is_build_vendor flag)) conf.libs }
+      in
+      let add_opam_libdir conf =
+        match opam_libdir with
+        | Some libdir ->
+            if has_libpoly && opam_has_libpoly && not (has_libdir libdir) then
+              (* Keep opam's libdir in the cmxa when opam libpoly exists. *)
               { conf with libs = ("-L" ^ libdir) :: conf.libs }
             else
               conf
         | None -> conf
       in
-      add_opam_libdir conf
+      let add_vendor_libdir conf =
+        match vendor_libdir with
+        | Some libdir ->
+            if has_libpoly && vendor_has_libpoly && not opam_has_libpoly
+               && not (has_libdir libdir) && not (libpoly_in_flags conf.libs) then
+              (* Fall back to the vendored libpoly when no other libpoly is found. *)
+              { conf with libs = ("-L" ^ libdir) :: conf.libs }
+            else
+              conf
+        | None -> conf
+      in
+      let conf = add_opam_libdir conf in
+      let conf = add_vendor_libdir conf in
+      strip_build_vendor_libdirs conf
     in
 
     (* Emit the same flags in multiple formats for dune rules. *)
