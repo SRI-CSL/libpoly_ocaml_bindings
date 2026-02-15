@@ -47,11 +47,15 @@ module UPolynomial = struct
   include Types_generated.UPolynomial
   include Ctypes_bindings.Function.UPolynomial
   let degree p = degree p |> Unsigned.Size_t.to_int
-  let construct ring degree coeffs = construct ring (Size_t.of_int degree) coeffs
+  let construct ring degree coeffs =
+    let p = construct ring (Size_t.of_int degree) coeffs in
+    Gc.finalise delete p; p
   let construct_from_int ring degree coeffs =
-    construct_from_int ring (Size_t.of_int degree) coeffs
+    let p = construct_from_int ring (Size_t.of_int degree) coeffs in
+    Gc.finalise delete p; p
   let construct_power ring degree coeff =
-    construct_power ring (Size_t.of_int degree) coeff
+    let p = construct_power ring (Size_t.of_int degree) coeff in
+    Gc.finalise delete p; p
   let to_string x = x |> to_string0 |> to_string
 
 end

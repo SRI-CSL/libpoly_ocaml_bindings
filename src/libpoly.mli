@@ -40,7 +40,6 @@ module UPolynomial : sig
   val construct          : Ring.t ptr -> int -> MPZ.t abstract ptr -> t ptr
   val construct_from_int : Ring.t ptr -> int -> int ptr -> t ptr
   val construct_power    : Ring.t ptr -> int -> Signed.Long.t -> t ptr
-  val delete    : t ptr -> unit
   val to_string : t ptr -> string
 end
    
