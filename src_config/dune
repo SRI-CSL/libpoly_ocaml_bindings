@@ -1,11 +1,13 @@
 ; Small helper that writes c_flags.sexp/c_library_flags.sexp for dune rules.
 (executable
  (name discover)
+ (modules discover)
  (libraries dune.configurator str))
 
 ; Helper used at build time to probe C struct sizes for Ctypes.
 (executable
  (name struct_sizes)
+ (modules struct_sizes)
  (libraries dune.configurator str))
 
 ; Keep dev builds permissive to avoid false positives in generated code.
