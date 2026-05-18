@@ -49,6 +49,35 @@ let () =
           else
             Some p
     in
+    (* Keep pkg-config consistent with discover.ml by checking switch-local
+       package metadata before system locations. *)
+    let opam_prefix =
+      match Sys.getenv_opt "OPAM_SWITCH_PREFIX" with
+      | Some p when p <> "" -> Some p
+      | _ ->
+          begin match C.which c "opam" with
+          | None -> None
+          | Some opam ->
+              let res = C.Process.run c opam [ "var"; "prefix" ] in
+              if res.exit_code = 0 then
+                let p = String.trim res.stdout in
+                if p = "" then None else Some p
+              else
+                None
+          end
+    in
+    begin
+      match opam_prefix with
+      | None -> ()
+      | Some p ->
+          let pc_dir = Filename.concat p "lib/pkgconfig" in
+          let new_value =
+            match Sys.getenv_opt "PKG_CONFIG_PATH" with
+            | None | Some "" -> pc_dir
+            | Some v -> pc_dir ^ ":" ^ v
+          in
+          Unix.putenv "PKG_CONFIG_PATH" new_value
+    end;
     (* Conservative include paths in case pkg-config is unavailable. *)
     let fallback_cflags =
       let base =
@@ -73,9 +102,18 @@ let () =
       match C.Pkg_config.get c with
       | None -> fallback_cflags
       | Some pc ->
-          (match C.Pkg_config.query pc ~package:"poly.0" with
-           | Some p -> p.C.Pkg_config.cflags
-           | None -> fallback_cflags)
+          let packages =
+            if is_system "macosx" sys then [ "poly.0"; "poly" ]
+            else [ "poly"; "poly.0" ]
+          in
+          let rec query = function
+            | [] -> fallback_cflags
+            | package :: rest ->
+                match C.Pkg_config.query pc ~package with
+                | Some p -> p.C.Pkg_config.cflags
+                | None -> query rest
+          in
+          query packages
     in
     (* Use the same C compiler as OCaml's toolchain. *)
     let cc =

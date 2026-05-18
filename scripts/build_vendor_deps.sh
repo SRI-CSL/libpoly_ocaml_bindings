@@ -114,10 +114,17 @@ check_system_libpoly() {
   c_file="$tmp_dir/has_libpoly.c"
   exe_file="$tmp_dir/has_libpoly"
 
-  # Use a trivial reference to libpoly version symbols to verify headers.
+  # Verify the headers used by the bindings, not just libpoly's version header.
   cat > "$c_file" <<'SRC'
 #include <poly/version.h>
+#include <poly/dyadic_rational.h>
+#include <poly/dyadic_interval.h>
+#include <poly/algebraic_number.h>
+#include <poly/integer.h>
+#include <poly/upolynomial.h>
 int main(void) {
+  lp_dyadic_interval_t interval;
+  (void)interval;
   return LIBPOLY_VERSION_MAJOR;
 }
 SRC
