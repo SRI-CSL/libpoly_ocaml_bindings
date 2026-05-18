@@ -80,6 +80,13 @@ let () =
     end;
     (* Conservative include paths in case pkg-config is unavailable. *)
     let fallback_cflags =
+      let add_if_has_header prefix cflags =
+        let incdir = Filename.concat prefix "include" in
+        if Sys.file_exists (Filename.concat incdir "poly/dyadic_interval.h") then
+          ("-I" ^ incdir) :: cflags
+        else
+          cflags
+      in
       let base =
         if is_system "freebsd" sys || is_system "openbsd" sys then
           [ "-I/usr/local/include" ]
@@ -88,14 +95,15 @@ let () =
         else
           [ "-I/usr/local/include"; "-I/usr/include" ]
       in
+      let base =
+        match opam_prefix with
+        | None -> base
+        | Some prefix -> add_if_has_header prefix base
+      in
       match vendor_prefix with
       | None -> base
       | Some prefix ->
-          let incdir = Filename.concat prefix "include" in
-          if Sys.file_exists (Filename.concat incdir "poly/version.h") then
-            ("-I" ^ incdir) :: base
-          else
-            base
+          add_if_has_header prefix base
     in
     (* Prefer pkg-config for libpoly headers when available. *)
     let cflags =

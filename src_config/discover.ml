@@ -93,6 +93,19 @@ let () =
           else
             Some p
     in
+    let required_poly_headers =
+      [ "poly/version.h";
+        "poly/dyadic_rational.h";
+        "poly/dyadic_interval.h";
+        "poly/algebraic_number.h";
+        "poly/integer.h";
+        "poly/upolynomial.h" ]
+    in
+    let has_poly_headers incdir =
+      List.for_all
+        (fun header -> Sys.file_exists (Filename.concat incdir header))
+        required_poly_headers
+    in
     (* If a vendored libpoly exists, inject it into the flag set. *)
     let vendor_poly_flags sofar =
       match vendor_prefix with
@@ -108,7 +121,7 @@ let () =
               Filename.concat libdir "libpoly.0.dylib" ]
           in
           let has_poly = List.exists Sys.file_exists candidates in
-          let has_headers = Sys.file_exists (Filename.concat incdir "poly/version.h") in
+          let has_headers = has_poly_headers incdir in
           if not has_poly && not has_headers then None
           else
             Some
@@ -117,11 +130,13 @@ let () =
     in
     (* Resolve each dependency, with pkg-config taking precedence. *)
     let aux sofar (linux_name, macos_name) =
-      let package =
-        if is_system "macosx" sys then macos_name else linux_name
+      let packages =
+        if linux_name = macos_name then [ linux_name ]
+        else if is_system "macosx" sys then [ macos_name; linux_name ]
+        else [ linux_name; macos_name ]
       in
       let default () =
-        { libs   = sofar.libs @ ["-l" ^ package];
+        { libs   = sofar.libs @ ["-l" ^ linux_name];
           cflags = sofar.cflags }
       in
       match C.Pkg_config.get c with
@@ -134,25 +149,33 @@ let () =
           else
             default ()
       | Some pc ->
-         match C.Pkg_config.query pc ~package with
-         | None ->
-            (* pkg-config knows nothing about the package; fall back. *)
-            if linux_name = "poly" then
-              match vendor_poly_flags sofar with
-              | Some conf -> conf
-              | None -> default ()
-            else
-              default ()
-         | Some deps ->
-            (* Merge discovered flags into the running set. *)
-            { libs   = sofar.libs @ deps.libs ;
-              cflags = sofar.cflags @ deps.cflags }
+          let rec query = function
+            | [] ->
+                (* pkg-config knows nothing about the package; fall back. *)
+                if linux_name = "poly" then
+                  match vendor_poly_flags sofar with
+                  | Some conf -> conf
+                  | None -> default ()
+                else
+                  default ()
+            | package :: rest ->
+                match C.Pkg_config.query pc ~package with
+                | None -> query rest
+                | Some deps ->
+                    (* Merge discovered flags into the running set. *)
+                    { libs = sofar.libs @ deps.libs;
+                      cflags = sofar.cflags @ deps.cflags }
+          in
+          query packages
     in
     let conf = List.fold_left aux base !pkg in
     let conf =
       let has_libpoly = List.exists ((=) "-lpoly") conf.libs in
       let has_libdir libdir =
         List.exists (fun flag -> flag = "-L" ^ libdir) conf.libs
+      in
+      let has_incdir incdir =
+        List.exists (fun flag -> flag = "-I" ^ incdir) conf.cflags
       in
       let libpoly_candidates =
         [ "libpoly.dylib";
@@ -189,9 +212,19 @@ let () =
         | Some prefix -> Some (Filename.concat prefix "lib")
         | None -> None
       in
+      let opam_incdir =
+        match opam_prefix with
+        | Some prefix -> Some (Filename.concat prefix "include")
+        | None -> None
+      in
       let opam_has_libpoly =
         match opam_libdir with
         | Some dir -> libpoly_in_dir dir
+        | None -> false
+      in
+      let opam_has_headers =
+        match opam_incdir with
+        | Some dir -> has_poly_headers dir
         | None -> false
       in
       let vendor_libdir =
@@ -227,6 +260,16 @@ let () =
               conf
         | None -> conf
       in
+      let add_opam_incdir conf =
+        match opam_incdir with
+        | Some incdir ->
+            if has_libpoly && opam_has_headers && not (has_incdir incdir) then
+              (* Keep C stub compilation aligned with opam's libpoly install. *)
+              { conf with cflags = ("-I" ^ incdir) :: conf.cflags }
+            else
+              conf
+        | None -> conf
+      in
       let add_vendor_libdir conf =
         match vendor_libdir with
         | Some libdir ->
@@ -239,6 +282,7 @@ let () =
         | None -> conf
       in
       let conf = add_opam_libdir conf in
+      let conf = add_opam_incdir conf in
       let conf = add_vendor_libdir conf in
       strip_build_vendor_libdirs conf
     in
