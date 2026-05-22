@@ -1,6 +1,7 @@
-.PHONY: default build install uninstall reinstall test clean with-local-libpoly
+.PHONY: default build install uninstall reinstall test clean with-local-libpoly pin-deps opam-deps
 
 OPAM_SWITCH_PREFIX ?= $(shell opam var prefix 2>/dev/null)
+CTYPES_ZARITH_PIN ?= git+https://github.com/SRI-CSL/ctypes-zarith.git
 export OPAM_SWITCH_PREFIX
 
 default: build
@@ -10,6 +11,12 @@ build:
 
 with-local-libpoly:
 	LIBPOLY_FORCE_LOCAL=1 dune build
+
+pin-deps:
+	opam pin add ctypes-zarith.0.2.0 "$(CTYPES_ZARITH_PIN)" -y
+
+opam-deps: pin-deps
+	opam install . --deps-only
 
 test:
 	DYLD_LIBRARY_PATH="$(OPAM_SWITCH_PREFIX)/lib:$(PWD)/_build/default/vendor_install/lib$${DYLD_LIBRARY_PATH:+:$${DYLD_LIBRARY_PATH}}" \

@@ -13,7 +13,10 @@ depends: [
   "dune" {build & >= "3.7.0"}
   "ocamlfind" {build}
   "ctypes"
-  "ctypes-zarith"
+  "ctypes-zarith" {= "0.2.0"}
+]
+pin-depends: [
+  ["ctypes-zarith.0.2.0" "git+https://github.com/SRI-CSL/ctypes-zarith.git"]
 ]
 build: [
   make
