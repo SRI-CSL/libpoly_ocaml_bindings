@@ -255,7 +255,12 @@ cmake "-S" "$libpoly_dir" "-B" "$libpoly_build" \
   -DBUILD_TESTING=OFF
 
 # Build and install into the vendor prefix.
-cmake --build "$libpoly_build"
+build_jobs="${LIBPOLY_BUILD_JOBS:-${OPAMJOBS:-}}"
+if [ -n "$build_jobs" ]; then
+  cmake --build "$libpoly_build" --parallel "$build_jobs"
+else
+  cmake --build "$libpoly_build" --parallel
+fi
 cmake --install "$libpoly_build"
 
 # Generate a minimal pkg-config file for downstream discovery.
