@@ -1,4 +1,4 @@
-.PHONY: default build install uninstall reinstall test clean with-local-libpoly pin-deps opam-deps
+.PHONY: default build install install-with-local-libpoly uninstall reinstall test test-with-local-libpoly clean with-local-libpoly pin-deps opam-deps
 
 OPAM_SWITCH_PREFIX ?= $(shell opam var prefix 2>/dev/null)
 CTYPES_ZARITH_PIN ?= git+https://github.com/SRI-CSL/ctypes-zarith.git
@@ -23,6 +23,12 @@ test:
 	LD_LIBRARY_PATH="$(OPAM_SWITCH_PREFIX)/lib:$(PWD)/_build/default/vendor_install/lib$${LD_LIBRARY_PATH:+:$${LD_LIBRARY_PATH}}" \
 	dune build @runtest
 
+test-with-local-libpoly:
+	DYLD_LIBRARY_PATH="$(OPAM_SWITCH_PREFIX)/lib:$(PWD)/_build/default/vendor_install/lib$${DYLD_LIBRARY_PATH:+:$${DYLD_LIBRARY_PATH}}" \
+	LD_LIBRARY_PATH="$(OPAM_SWITCH_PREFIX)/lib:$(PWD)/_build/default/vendor_install/lib$${LD_LIBRARY_PATH:+:$${LD_LIBRARY_PATH}}" \
+	LIBPOLY_FORCE_LOCAL=1 \
+	dune build @runtest
+
 install:
 	# Build vendored libpoly and copy it to the opam prefix first, so
 	# the OCaml archive picks up the opam libdir instead of build paths.
@@ -32,6 +38,9 @@ install:
 	dune clean
 	dune build @install
 	dune install
+
+install-with-local-libpoly:
+	LIBPOLY_FORCE_LOCAL=1 $(MAKE) install
 
 reinstall: uninstall install
 

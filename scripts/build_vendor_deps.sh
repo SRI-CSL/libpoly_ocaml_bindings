@@ -194,7 +194,12 @@ SRC
 
 # Skip the vendored build unless explicitly forced.
 if [ "${LIBPOLY_FORCE_LOCAL:-}" != "1" ] && check_system_libpoly; then
-  echo "Using system libpoly; skipping vendored build."
+  opam_prefix="$(find_opam_prefix || true)"
+  if [ -n "$opam_prefix" ] && [ -f "$opam_prefix/lib/pkgconfig/.libpoly_vendored" ]; then
+    echo "Using vendored libpoly installed in opam switch; skipping local vendored build."
+  else
+    echo "Using system libpoly; skipping vendored build."
+  fi
   touch "$prefix/.keep"
   if [ -n "$stamp" ]; then
     mkdir -p "$(dirname "$stamp")"

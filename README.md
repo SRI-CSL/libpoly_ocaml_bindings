@@ -33,6 +33,13 @@ To force the vendored build even when a system libpoly is present:
 make with-local-libpoly
 ```
 
+To force the vendored build while running tests or installing:
+
+```
+make test-with-local-libpoly
+make install-with-local-libpoly
+```
+
 When the vendored build runs, it installs libpoly into `_build/<context>/vendor_install`. `make install` will copy these artifacts into the current opam prefix, and `make uninstall` will remove them. The vendored build requires `cmake` and a C++ compiler.
 
 #### Without opam

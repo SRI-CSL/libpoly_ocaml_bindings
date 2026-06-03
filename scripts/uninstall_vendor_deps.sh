@@ -17,6 +17,15 @@ if [[ -z "${prefix}" ]]; then
   exit 1
 fi
 
+marker="${prefix}/lib/pkgconfig/.libpoly_vendored"
+
+# Only remove switch-level libpoly artifacts that this package marked as
+# vendored. Without the marker, the files may belong to the user or system.
+if [[ ! -f "${marker}" ]]; then
+  echo "No vendored libpoly marker found in ${prefix}; skipping vendored libpoly removal."
+  exit 0
+fi
+
 # Keep the log message explicit so users know what is being removed.
 echo "Removing vendored libpoly from ${prefix}"
 
@@ -27,7 +36,7 @@ rm -f \
   "${prefix}/lib/libpicpoly.a" \
   "${prefix}/lib/libpicpolyxx.a" \
   "${prefix}/lib/pkgconfig/poly.0.pc" \
-  "${prefix}/lib/pkgconfig/.libpoly_vendored"
+  "${marker}"
 
 # Remove vendored headers.
 rm -rf "${prefix}/include/poly"
